@@ -19,7 +19,7 @@ import sqlite3 as lite
 from datetime import date
 import hashlib
 import utils.redi_email as redi_email
-from utils.redcapClient import redcapClient
+from utils.redcapClient import RedcapClient
 from requests import RequestException
 from lxml import etree
 import logging
@@ -127,7 +127,7 @@ def generate_output(person_tree, redcap_settings, email_settings, data_repositor
 
     try:
         # Communication with redcap
-        redcapClientObject = redcapClient(redcap_settings['redcap_uri'],
+        redcapClientObject = RedcapClient(redcap_settings['redcap_uri'],
                                           redcap_settings['token'],
                                           redcap_settings['verify_ssl'])
     except RequestException:

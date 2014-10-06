@@ -31,7 +31,7 @@ from requests import RequestException
 from lxml import etree
 
 from utils import redi_email
-from utils.redcapClient import redcapClient
+from utils.redcapClient import RedcapClient
 import utils.SimpleConfigParser as SimpleConfigParser
 import utils.GetEmrData as GetEmrData
 from utils.GetEmrData import EmrFileAccessDetails
@@ -1152,7 +1152,7 @@ def research_id_to_redcap_id_converter(
 
     try:
         # Communication with redcap
-        redcapClientObject = redcapClient(
+        redcapClientObject = RedcapClient(
             redcap_settings['redcap_uri'],redcap_settings['token'], redcap_settings['verify_ssl'])
     except RequestException:
         logger.info("Sending email to redcap support")

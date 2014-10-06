@@ -8,13 +8,13 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
 
-class redcapClient:
+class RedcapClient:
     # Helper class for getting data from redcap instace
 
     project = None
     """
     __init__:
-    This constructor in redcapClient takes a SimpleConfigParser object and establishes connection with REDCap instance.
+    This constructor in RedcapClient takes a SimpleConfigParser object and establishes connection with REDCap instance.
     Parameters:
         settings: an object of class SimpleConfigParser (in SimpleConfigParser module) that is used for parsing configuration details
     """

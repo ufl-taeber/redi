@@ -21,7 +21,7 @@ from lxml import etree
 from mock import patch
 import redi
 import redi_lib
-from utils.redcapClient import redcapClient
+from utils.redcapClient import RedcapClient
 import utils.SimpleConfigParser as SimpleConfigParser
 
 file_dir = os.path.dirname(os.path.realpath(__file__))
@@ -31,22 +31,21 @@ proj_root = os.path.abspath(goal_dir)+'/'
 DEFAULT_DATA_DIRECTORY = os.getcwd()
 
 class TestGenerateOutput(unittest.TestCase):
-    
+
     def setUp(self):
         redi.configure_logging(DEFAULT_DATA_DIRECTORY)
 
     def dummy_redcapClient_initializer(self, redcap_uri, token, verify_ssl):
         pass
-        
+
     class dummyClass:
         def_field = 'test'
-        
 
     def dummy_send_data_to_redcap(self, data, overwrite = False):
         dummy_output = """Data sent"""
         return dummy_output
-    
-    @patch.multiple(redcapClient, __init__= dummy_redcapClient_initializer,
+
+    @patch.multiple(RedcapClient, __init__= dummy_redcapClient_initializer,
             project = dummyClass(), send_data_to_redcap = dummy_send_data_to_redcap)
     def test_person_form_event(self):
         redi.logger.info("Running " + __name__ 
