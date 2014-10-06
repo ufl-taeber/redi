@@ -270,10 +270,22 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
     # redi.py is not executing in dry run state.
     if not dry_run:
         unsent_events = person_form_event_tree_with_data.xpath("//event/status[.='unsent']")
+
         # Use the new method to communicate with RedCAP
+        try:
+            # Communication with redcap
+            redcap_client = RedcapClient(redcap_settings['redcap_uri'],
+                                         redcap_settings['token'],
+                                         redcap_settings['verify_ssl'])
+        except RequestException:
+            redi_email.send_email_redcap_connection_error(email_settings)
+            quit()
+
         report_data = redi_lib.generate_output(
-            person_form_event_tree_with_data, redcap_settings, email_settings,
+            person_form_event_tree_with_data, redcap_client,
+            redcap_settings['rate_limiter_value_in_redcap'],
             _person_form_events_service, skip_blanks)
+
         # write person_form_event_tree to file
         write_element_tree_to_file(person_form_event_tree_with_data,\
          os.path.join(data_folder, 'person_form_event_tree_with_data.xml'))
