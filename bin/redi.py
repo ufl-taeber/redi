@@ -474,14 +474,24 @@ def _create_person_form_event_tree_with_data(config_file, \
     # write back the changed global Element Tree
     write_element_tree_to_file(data, os.path.join(data_folder, \
         'rawDataWithAllUpdates.xml'))
+
+    try:
+        # Communication with redcap
+        redcap_client = RedcapClient(
+            redcap_settings['redcap_uri'],redcap_settings['token'], redcap_settings['verify_ssl'])
+    except RequestException:
+        logger.info("Sending email to redcap support")
+        if not dry_run:
+            redi_email.send_email_redcap_connection_error(email_settings)
+        sys.exit()
+
     # Research ID - to - Redcap ID converter
     research_id_to_redcap_id_converter(
         data,
-        redcap_settings,
-        email_settings,
-        settings.research_id_to_redcap_id,dry_run,
+        redcap_client,
+        settings.research_id_to_redcap_id,
         configuration_directory)
-    # create person_form_event_tree.xml
+
     person_form_event_tree = create_empty_event_tree_for_study(
         data,
         all_form_events_per_subject)
@@ -1102,9 +1112,7 @@ def update_event_name(data, lookup_data, undefined):
 
 # @TODO: remove settings from signature
 def research_id_to_redcap_id_converter(
-        data,redcap_settings,
-        email_settings,research_id_to_redcap_id,dry_run,
-        configuration_directory):
+        data, redcap_client, research_id_to_redcap_id, configuration_directory):
     """
     This function converts the research_id to redcap_id
      1. prepare a dictionary with [key, value] --> [study_id, redcap_id]
@@ -1150,18 +1158,8 @@ def research_id_to_redcap_id_converter(
             'redcap_id_field_name tag in file %s is not present',
             mapping_xml)
 
-    try:
-        # Communication with redcap
-        redcapClientObject = RedcapClient(
-            redcap_settings['redcap_uri'],redcap_settings['token'], redcap_settings['verify_ssl'])
-    except RequestException:
-        logger.info("Sending email to redcap support")
-        if not dry_run:
-            redi_email.send_email_redcap_connection_error(email_settings)
-        sys.exit()
-
     # query the redcap for the response with redcap id's
-    response = redcapClientObject.get_data_from_redcap(
+    response = redcap_client.get_data_from_redcap(
         fields_to_fetch=[
             research_id_field_name,
             redcap_id_field_name])

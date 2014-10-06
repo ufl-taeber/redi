@@ -36,7 +36,7 @@ class TestGenerateOutput(unittest.TestCase):
         redi.configure_logging(DEFAULT_DATA_DIRECTORY)
 
     def dummy_redcapClient_initializer(self, redcap_uri, token, verify_ssl):
-        pass
+        self.project = TestGenerateOutput.dummyClass()
 
     class dummyClass:
         def_field = 'test'
@@ -45,8 +45,9 @@ class TestGenerateOutput(unittest.TestCase):
         dummy_output = """Data sent"""
         return dummy_output
 
-    @patch.multiple(RedcapClient, __init__= dummy_redcapClient_initializer,
-            project = dummyClass(), send_data_to_redcap = dummy_send_data_to_redcap)
+    @patch.multiple(RedcapClient,
+                    __init__=dummy_redcapClient_initializer,
+                    send_data_to_redcap=dummy_send_data_to_redcap)
     def test_person_form_event(self):
         redi.logger.info("Running " + __name__ 
             + "#test_person_form_event() using xml: " )

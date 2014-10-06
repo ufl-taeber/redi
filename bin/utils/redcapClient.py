@@ -11,7 +11,6 @@ logger.addHandler(logging.NullHandler())
 class RedcapClient:
     # Helper class for getting data from redcap instace
 
-    project = None
     """
     __init__:
     This constructor in RedcapClient takes a SimpleConfigParser object and establishes connection with REDCap instance.
