@@ -266,11 +266,14 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
     if not resume:
         _delete_last_runs_data(data_folder)
 
+        redcap_client = connect_to_redcap(email_settings, redcap_settings,
+                                          dry_run)
+
         alert_summary, person_form_event_tree_with_data, rule_errors, \
         collection_date_summary_dict = _create_person_form_event_tree_with_data(
-            config_file, configuration_directory, email_settings,\
-             form_events_file, raw_xml_file, redcap_settings, rules,\
-              settings, data_folder, translation_table_file, dry_run)
+            config_file, configuration_directory, redcap_client,
+            form_events_file, raw_xml_file, rules, settings, data_folder,
+            translation_table_file)
 
         _store_run_data(data_folder, alert_summary,
                         person_form_event_tree_with_data, rule_errors,
@@ -378,10 +381,10 @@ def deliver_report_as_email(email_settings, html):
         deliver_report_as_file("report.html", html)
 
 
-def _create_person_form_event_tree_with_data(config_file, \
-    configuration_directory, email_settings, form_events_file, raw_xml_file,\
-     redcap_settings, rules, settings, data_folder, translation_table_file,\
-      dry_run):
+def _create_person_form_event_tree_with_data(
+        config_file, configuration_directory, redcap_client, form_events_file,
+        raw_xml_file, rules, settings, data_folder, translation_table_file):
+
     global translational_table_tree
     # parse the raw.xml file and fill the etree rawElementTree
     data = parse_raw_xml(raw_xml_file)
@@ -495,10 +498,6 @@ def _create_person_form_event_tree_with_data(config_file, \
     # write back the changed global Element Tree
     write_element_tree_to_file(data, os.path.join(data_folder, \
         'rawDataWithAllUpdates.xml'))
-
-
-    # Communication with redcap
-    redcap_client = connect_to_redcap(email_settings, redcap_settings, dry_run)
 
     # Research ID - to - Redcap ID converter
     research_id_to_redcap_id_converter(

@@ -45,6 +45,7 @@ class TestResume(unittest.TestCase):
         redi._delete_last_runs_data = lambda *args: None
         redi._removedirs = lambda *args: None
         redi._mkdir = lambda *args: None
+        redi.connect_to_redcap = lambda *args: None
 
         with self.assertRaises(FileStored):
             redi._run(config_file=None, configuration_directory='',
