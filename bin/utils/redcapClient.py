@@ -1,9 +1,9 @@
-from lxml import etree
+import logging
+
 from redcap import Project, RedcapError
 from requests import RequestException
-import pprint
-import redi_email
-import logging
+
+# Configure module's logger
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
 
