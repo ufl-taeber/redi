@@ -201,6 +201,19 @@ def _save(obj, path):
         pickle.dump(obj, fp)
 
 
+def connect_to_redcap(email_settings, redcap_settings, dry_run=False):
+    try:
+        return RedcapClient(redcap_settings['redcap_uri'],
+                            redcap_settings['token'],
+                            redcap_settings['verify_ssl'])
+    except RequestException as error:
+        logger.exception(error)
+        logger.info("Sending email to redcap support")
+        if not dry_run:
+            redi_email.send_email_redcap_connection_error(email_settings)
+        sys.exit()
+
+
 def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
          get_emr_data, settings, data_folder, database_path, resume=False, skip_blanks=False):
     global translational_table_tree
@@ -272,14 +285,7 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
         unsent_events = person_form_event_tree_with_data.xpath("//event/status[.='unsent']")
 
         # Use the new method to communicate with RedCAP
-        try:
-            # Communication with redcap
-            redcap_client = RedcapClient(redcap_settings['redcap_uri'],
-                                         redcap_settings['token'],
-                                         redcap_settings['verify_ssl'])
-        except RequestException:
-            redi_email.send_email_redcap_connection_error(email_settings)
-            quit()
+        redcap_client = connect_to_redcap(email_settings, redcap_settings)
 
         report_data = redi_lib.generate_output(
             person_form_event_tree_with_data, redcap_client,
@@ -328,6 +334,7 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
     if not do_keep_gen_files:
         redi_lib.delete_temporary_folder(data_folder)
 
+
 def deliver_report_as_file(html_report_path, html):
     """
     Deliver the summary report by writing it to a file
@@ -355,6 +362,7 @@ def deliver_report_as_file(html_report_path, html):
     if problem_found:
         logger.info("== Summary report ==" + html)
 
+
 def deliver_report_as_email(email_settings, html):
     """
     Deliver summary report as an email
@@ -368,6 +376,7 @@ def deliver_report_as_email(email_settings, html):
     except Exception as e:
         logger.error("Unable to deliver the summary report due error: %s" % e)
         deliver_report_as_file("report.html", html)
+
 
 def _create_person_form_event_tree_with_data(config_file, \
     configuration_directory, email_settings, form_events_file, raw_xml_file,\
@@ -487,15 +496,9 @@ def _create_person_form_event_tree_with_data(config_file, \
     write_element_tree_to_file(data, os.path.join(data_folder, \
         'rawDataWithAllUpdates.xml'))
 
-    try:
-        # Communication with redcap
-        redcap_client = RedcapClient(
-            redcap_settings['redcap_uri'],redcap_settings['token'], redcap_settings['verify_ssl'])
-    except RequestException:
-        logger.info("Sending email to redcap support")
-        if not dry_run:
-            redi_email.send_email_redcap_connection_error(email_settings)
-        sys.exit()
+
+    # Communication with redcap
+    redcap_client = connect_to_redcap(email_settings, redcap_settings, dry_run)
 
     # Research ID - to - Redcap ID converter
     research_id_to_redcap_id_converter(
