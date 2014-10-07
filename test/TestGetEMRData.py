@@ -14,7 +14,7 @@ from subprocess import Popen
 # Try to silence extra info
 logging.getLogger("paramico").addHandler(logging.NullHandler)
 logging.getLogger("pysftp").addHandler(logging.NullHandler)
-@unittest.skip
+
 class TestGetEMRData(unittest.TestCase):
 
     def setUp(self):
