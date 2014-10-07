@@ -144,8 +144,12 @@ def main():
         os.path.join(output_files, 'person_form_event_tree_with_data.xml'),\
          logger)
 
+    redcap_client = connect_to_redcap(get_email_settings(settings),
+                                      get_redcap_settings(settings), dry_run)
+
     _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
-         get_emr_data, settings, output_files, db_path, args['resume'], args['skip_blanks'])
+         get_emr_data, settings, output_files, db_path, redcap_client,
+         args['resume'], args['skip_blanks'])
 
 
 def _makedirs(data_folder):
@@ -215,7 +219,8 @@ def connect_to_redcap(email_settings, redcap_settings, dry_run=False):
 
 
 def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
-         get_emr_data, settings, data_folder, database_path, resume=False, skip_blanks=False):
+         get_emr_data, settings, data_folder, database_path, redcap_client,
+         resume=False, skip_blanks=False):
     global translational_table_tree
 
     assert _person_form_events_service is not None
@@ -242,7 +247,6 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
     # we need the batch information to set the
     # status to `completed` an ste the `rbEndTime`
     email_settings = get_email_settings(settings)
-    redcap_settings = get_redcap_settings(settings)
     db_path = database_path
     batch = _check_input_file(db_path, email_settings, raw_xml_file, settings)
 
@@ -266,9 +270,6 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
     if not resume:
         _delete_last_runs_data(data_folder)
 
-        redcap_client = connect_to_redcap(email_settings, redcap_settings,
-                                          dry_run)
-
         alert_summary, person_form_event_tree_with_data, rule_errors, \
         collection_date_summary_dict = _create_person_form_event_tree_with_data(
             config_file, configuration_directory, redcap_client,
@@ -288,12 +289,10 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
         unsent_events = person_form_event_tree_with_data.xpath("//event/status[.='unsent']")
 
         # Use the new method to communicate with RedCAP
-        redcap_client = connect_to_redcap(email_settings, redcap_settings)
-
         report_data = redi_lib.generate_output(
             person_form_event_tree_with_data, redcap_client,
-            redcap_settings['rate_limiter_value_in_redcap'],
-            _person_form_events_service, skip_blanks)
+            settings.rate_limiter_value_in_redcap, _person_form_events_service,
+            skip_blanks)
 
         # write person_form_event_tree to file
         write_element_tree_to_file(person_form_event_tree_with_data,\

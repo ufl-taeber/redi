@@ -23,7 +23,8 @@ class TestResume(unittest.TestCase):
         with self.assertRaises(FileDeleted):
             redi._run(config_file=None, configuration_directory='',
                       do_keep_gen_files=None, dry_run=True, get_emr_data=False,
-                      settings=MockSettings(), data_folder=None, database_path=None)
+                      settings=MockSettings(), data_folder=None,
+                      database_path=None, redcap_client=None)
 
     def test_no_resume_stores(self):
         class MockPersonFormEvents(object):
@@ -50,7 +51,8 @@ class TestResume(unittest.TestCase):
         with self.assertRaises(FileStored):
             redi._run(config_file=None, configuration_directory='',
                       do_keep_gen_files=None, dry_run=True, get_emr_data=False,
-                      settings=MockSettings(), data_folder=None, database_path=None)
+                      settings=MockSettings(), data_folder=None,
+                      database_path=None, redcap_client=None)
 
     def test_resume_fetches_data_from_last_run(self):
         class MockPersonFormEvents(object):
@@ -69,7 +71,8 @@ class TestResume(unittest.TestCase):
         with self.assertRaises(DataFetched):
             redi._run(config_file=None, configuration_directory='',
                       do_keep_gen_files=None, dry_run=True, get_emr_data=False,
-                      settings=MockSettings(), data_folder=None, database_path=None, resume=True)
+                      settings=MockSettings(), data_folder=None,
+                      database_path=None, resume=True, redcap_client=None)
 
 
 class MockSettings(object):
