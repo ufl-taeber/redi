@@ -288,7 +288,7 @@ def _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
     if not dry_run:
         unsent_events = person_form_event_tree_with_data.xpath("//event/status[.='unsent']")
 
-        # Use the new method to communicate with RedCAP
+        # Use the new method to communicate with REDCap
         report_data = redi_lib.generate_output(
             person_form_event_tree_with_data, redcap_client,
             settings.rate_limiter_value_in_redcap, _person_form_events_service,
@@ -606,7 +606,7 @@ def parse_args(arguments=None):
         default=False,
         action='store_true',
         required=False,
-        help='skip blank events when sending event data to RedCAP')
+        help='skip blank events when sending event data to REDCap')
 
     if arguments:
         parsed = parser.parse_args(arguments)
