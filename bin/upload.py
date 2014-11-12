@@ -10,11 +10,11 @@ import ast
 import datetime
 import logging
 import os
-import time
 
 from lxml import etree
 from redcap import RedcapError
 
+from bin.utils import throttle
 
 logger = logging.getLogger(__name__)
 logger.addHandler(logging.NullHandler())
@@ -98,11 +98,8 @@ def generate_output(person_tree, redcap_client, rate_limit, data_repository, ski
     root = person_tree.getroot()
     persons = root.xpath('//person')
 
-    rate_limiter_value_in_redcap = float(rate_limit)
-
-
-    ideal_time_per_request = 60 / float(rate_limiter_value_in_redcap)
-    time_stamp_after_request = 0
+    upload_data = throttle.Throttle(redcap_client.send_data_to_redcap,
+                                    int(rate_limit))
 
     # main loop for each person
     for person in persons:
@@ -164,15 +161,6 @@ def generate_output(person_tree, redcap_client, rate_limit, data_repository, ski
                     if skip_blanks and not contains_data:
                         break
 
-                    time_lapse_since_last_request = time.time(
-                    ) - time_stamp_after_request
-                    sleepTime = max(
-                        ideal_time_per_request -
-                        time_lapse_since_last_request,
-                        0)
-                    # print 'Sleep for: %s seconds' % sleepTime
-                    time.sleep(sleepTime)
-
                     if (0 == event_count % 50):
                         logger.info('Requests sent: %s' % (event_count))
 
@@ -181,7 +169,7 @@ def generate_output(person_tree, redcap_client, rate_limit, data_repository, ski
 
                     try:
                         found_error = False
-                        response = redcap_client.send_data_to_redcap([json_data_dict], overwrite = True)
+                        upload_data([json_data_dict], overwrite=True)
                         status = event.find('status')
                         if status is not None:
                             status.text = 'sent'
@@ -194,8 +182,6 @@ def generate_output(person_tree, redcap_client, rate_limit, data_repository, ski
                         found_error = handle_errors_in_redcap_xml_response(
                             e.message,
                             report_data)
-
-                    time_stamp_after_request = time.time()
 
                     if contains_data:
                         if not found_error:
