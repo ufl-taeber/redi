@@ -57,7 +57,7 @@ class Throttle(object):
         if limit_reached:
             lapsed = now - self._timestamps[0]
             if lapsed <= self._interval:
-                self._sleep(lapsed.total_seconds())
+                self._sleep((self._interval - lapsed).total_seconds())
                 self._timestamps.clear()
 
         self._timestamps.append(now)
