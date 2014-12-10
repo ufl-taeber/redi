@@ -67,13 +67,13 @@ class ClinicalRecords(object):
 
 
 class Result(object):
-    def __init__(self, component, value):
-        self._component = component
-        self._verbatim = value
+    def __init__(self, result_type, verbatim):
+        self._type = result_type
+        self._verbatim = verbatim
 
     @property
     def value(self):
-        return self._component.type(self._verbatim)
+        return self._type(self._verbatim)
 
     @property
     def verbatim(self):
@@ -95,7 +95,8 @@ class ClinicalRecord(object):
 
     @property
     def result(self):
-        return Result(self.component, self._record[self._headers[HEADER_RESULT]])
+        return Result(self.component.type,
+                      self._record[self._headers[HEADER_RESULT]])
 
     @property
     def subject(self):
