@@ -5,6 +5,7 @@ redi.py - Converter from raw clinical data in XML format to REDCap API data
 Usage:
         redi.py -h | --help
         redi.py [-v] [-k] [-e] [-d] [-r] [-c=<path>] [-D=<datadir>] [-s] [-b]
+        redi.py [-c=<path>] [-D=<datadir>] [-v] [-k] [-u=<datafile>]
 
 Options:
         -h --help                   show this help message and exit
@@ -27,6 +28,7 @@ Options:
                                     different projects
         -s --skip-blanks            skip blank events when sending event data to REDCap [default:False]
         -b --bulk-send-blanks       send blank events in bulk instead of individually [default:False]
+        -u --upload=<datafile>      Uploads the data in the specified CSV file directly to REDCap
 """
 
 __author__ = "Nicholas Rejack"
@@ -37,6 +39,7 @@ __email__ = "nrejack@ufl.edu"
 __status__ = "Development"
 
 import ast
+import csv
 import errno
 import logging
 import pickle
@@ -174,10 +177,23 @@ def main():
         report_courier = report.ReportFileWriter(os.path.join(output_files,
             settings.report_file_path2), logger)
 
-    _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
-         get_emr_data, settings, output_files, db_path, redcap_client,
-         report_courier, report_creator, args['--resume'],
-         args['--skip-blanks'], args['--bulk-send-blanks'])
+    if args['--upload']:
+        if '-' == args['--upload']:
+            datafile = sys.stdin
+        else:
+            datafile = open(args['--upload'])
+
+        _direct_upload(redcap_client, datafile)
+    else:
+        _run(config_file, configuration_directory, do_keep_gen_files, dry_run,
+             get_emr_data, settings, output_files, db_path, redcap_client,
+             report_courier, report_creator, args['--resume'],
+             args['--skip-blanks'], args['--bulk-send-blanks'])
+
+
+def _direct_upload(redcap, data):
+    reader = csv.DictReader(data)
+    redcap.send_data_to_redcap([row for row in reader], max_retry_count=1)
 
 
 def get_db_path(batch_info_database, database_path):
